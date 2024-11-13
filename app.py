@@ -1,11 +1,13 @@
 import pandas as pd
 import numpy as np
 import streamlit as st
+from pathlib import Path
 
-path = '/home/lorenzo/Documents/Freelance/Streamlit Mexico/BasedatosproyectoVisualizacin.xlsx'
+
+path = Path("data/datos.xlsx")
 all_sheets = pd.read_excel(path, sheet_name=None, skiprows=2)
 
-sheets_to_exclude = ["LtKG", "Empaque", "Marcas"]
+sheets_to_exclude = ["LtKg", "Empaque", "Marcas"]
 
 df_list = []
 
@@ -40,17 +42,18 @@ for sheet_name, df in all_sheets.items():
 # Concatena todos los DataFrames en uno solo
 df = pd.concat(df_list, ignore_index=True)
 
-st.write(df)
+st.title("Tablero de Análisis de Ventas")
+st.dataframe(df, hide_index=True)
 
 # Configurar título y descripción del tablero
-st.title("Tablero de Análisis de Ventas")
+
 st.markdown("Este tablero muestra los datos de ventas por industria, sector y categoría, y permite aplicar filtros interactivos.")
 
 # Configurar filtros
 st.sidebar.header("Filtros")
-countries = st.sidebar.multiselect("País", options=df["Country"].unique(), default=df["Country"].unique())
-industries = st.sidebar.multiselect("Industria", options=df["Industry"].unique(), default=df["Industry"].unique())
-years = st.sidebar.slider("Año", int(df["Year"].min()), int(df["Year"].max()), (int(df["Year"].min()), int(df["Year"].max())))
+country = st.sidebar.selectbox("País", options=df["Country"].unique())
+industry = st.sidebar.selectbox("Industria", options=df["Industry"].unique())
+year = st.sidebar.select_slider("Año", options=sorted(df["Year"].unique()))
 
 # Aplicar filtros
 filtered_df = df[(df["Country"].isin(countries)) & 
@@ -59,7 +62,8 @@ filtered_df = df[(df["Country"].isin(countries)) &
 
 # Mostrar tabla de datos
 st.subheader("Datos filtrados")
-st.dataframe(filtered_df.style.format({"Value_M_USD": "${:,.2f}", "Growth_Percentage": "{:.2f}%"}))
+st.dataframe(filtered_df.style.format({"Value_M_USD": "${:,.2f}", "Growth_Percentage": "{:.2f}%"}),
+             hide_index=True)
 
 # Visualizaciones
 st.subheader("Visualizaciones")
@@ -71,14 +75,16 @@ st.bar_chart(sales_by_industry)
 # Gráfico de líneas de crecimiento por año
 growth_by_year = filtered_df.groupby("Year")["Growth_Percentage"].mean()
 st.line_chart(growth_by_year)
-
-# Tabla resumida
-st.subheader("Resumen de Ventas")
-summary = filtered_df.groupby(["Country", "Industry"])["Value_M_USD"].sum().reset_index()
-st.write(summary.style.format({"Value_M_USD": "${:,.2f}"}))
+col1, col2 = st.columns([3, 3]) 
+with col1:
+    st.subheader("Resumen de ventas")
+    summary = filtered_df.groupby(["Country", "Industry"])["Value_M_USD"].sum().reset_index()
+    #st.write(summary.style.format({"Value_M_USD": "${:,.2f}"}))
+    st.dataframe(summary.style.format({"Value_M_USD": "${:,.2f}"}), hide_index=True)
 
 # Mostrar métricas generales
-total_sales = filtered_df["Value_M_USD"].sum()
-average_growth = filtered_df["Growth_Percentage"].mean()
-st.metric("Ventas Totales (USD)", f"${total_sales:,.2f}")
-st.metric("Crecimiento Promedio (%)", f"{average_growth:.2f}%")
+with col2:
+    total_sales = filtered_df["Value_M_USD"].sum()
+    average_growth = filtered_df["Growth_Percentage"].mean()
+    st.metric("Ventas totales (USD)", f"${total_sales:,.2f}")
+    st.metric("Crecimiento promedio (%)", f"{average_growth:.2f}%")
