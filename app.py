@@ -49,20 +49,21 @@ st.dataframe(df, hide_index=True)
 
 st.markdown("Este tablero muestra los datos de ventas por industria, sector y categoría, y permite aplicar filtros interactivos.")
 
-# Configurar filtros
-country_options = ["All"] + list(df["Country"].unique())
-industry_options = ["All"] + list(df["Industry"].unique())
-year_options = ["All"] + sorted(df["Year"].unique())
+year_options = ["All"] + sorted(df["Year"].astype(str).unique())
 
-country = st.sidebar.selectbox("País", country_options)
-industry = st.sidebar.selectbox("Industria", industry_options)
-year = st.sidebar.selectbox("Año", year_options)
+default_country = ["All"]
+default_industry = ["All"]
+default_year = ["All"]
 
-# Apply filters based on the selection
+countries = st.sidebar.multiselect("País", options=["All"] + list(df["Country"].unique()), default=default_country)
+industries = st.sidebar.multiselect("Industria", options=["All"] + list(df["Industry"].unique()), default=default_industry)
+years = st.sidebar.multiselect("Año", options=year_options, default=default_year)
+
+# Apply filters
 filtered_df = df[
-    ((df["Country"] == country) | (country == "All")) &
-    ((df["Industry"] == industry) | (industry == "All")) &
-    ((df["Year"] == year) | (year == "All"))
+    (df["Country"].isin(countries) | ("All" in countries)) &  # Include all countries if "All" is selected
+    (df["Industry"].isin(industries) | ("All" in industries)) &  # Include all industries if "All" is selected
+    (df["Year"].astype(str).isin(years) | ("All" in years))  # Convert Year to string for comparison
 ]
 
 # Mostrar tabla de datos
