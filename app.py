@@ -50,16 +50,19 @@ st.dataframe(df, hide_index=True)
 st.markdown("Este tablero muestra los datos de ventas por industria, sector y categoría, y permite aplicar filtros interactivos.")
 
 # Configurar filtros
-st.sidebar.header("Filtros")
-countries = st.sidebar.selectbox("País", options=df["Country"].unique())
-industries = st.sidebar.selectbox("Industria", options=df["Industry"].unique())
-years = st.sidebar.select_slider("Año", options=sorted(df["Year"].unique()))
+country_options = ["All"] + list(df["Country"].unique())
+industry_options = ["All"] + list(df["Industry"].unique())
+year_options = ["All"] + sorted(df["Year"].unique())
 
-# Aplicar filtros
+country = st.sidebar.selectbox("País", country_options)
+industry = st.sidebar.selectbox("Industria", industry_options)
+year = st.sidebar.selectbox("Año", year_options)
+
+# Apply filters based on the selection
 filtered_df = df[
-    (df["Country"] == countries) & 
-    (df["Industry"] == industries) & 
-    (df["Year"] == years)
+    ((df["Country"] == country) | (country == "All")) &
+    ((df["Industry"] == industry) | (industry == "All")) &
+    ((df["Year"] == year) | (year == "All"))
 ]
 
 # Mostrar tabla de datos
