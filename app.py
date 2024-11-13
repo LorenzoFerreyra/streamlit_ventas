@@ -51,14 +51,16 @@ st.markdown("Este tablero muestra los datos de ventas por industria, sector y ca
 
 # Configurar filtros
 st.sidebar.header("Filtros")
-country = st.sidebar.selectbox("País", options=df["Country"].unique())
-industry = st.sidebar.selectbox("Industria", options=df["Industry"].unique())
-year = st.sidebar.select_slider("Año", options=sorted(df["Year"].unique()))
+countries = st.sidebar.selectbox("País", options=df["Country"].unique())
+industries = st.sidebar.selectbox("Industria", options=df["Industry"].unique())
+years = st.sidebar.select_slider("Año", options=sorted(df["Year"].unique()))
 
 # Aplicar filtros
-filtered_df = df[(df["Country"].isin(countries)) & 
-                 (df["Industry"].isin(industries)) & 
-                 (df["Year"].between(years[0], years[1]))]
+filtered_df = df[
+    (df["Country"] == countries) & 
+    (df["Industry"] == industries) & 
+    (df["Year"] == years)
+]
 
 # Mostrar tabla de datos
 st.subheader("Datos filtrados")
