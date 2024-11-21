@@ -6,7 +6,7 @@ import folium
 from streamlit_folium import st_folium
 
 # Configuración inicial de la página
-st.set_page_config(page_title="Tablero de Análisis de Ventas", layout="wide")
+st.set_page_config(page_title="Tablero de análisis de ventas", layout="wide")
 
 # Carga de datos
 def load_data():
@@ -114,6 +114,7 @@ def main():
     # Aplicar filtros
     filtered_df = df[
         (df["Country"].isin(countries) | ("All" in countries)) &
+        (df["Sector"].isin(sectors) | ("All" in sectors)) &
         (df["Industry"].isin(industries) | ("All" in industries)) &
         (df["Year"].astype(str).isin(years) | ("All" in years))
     ]
