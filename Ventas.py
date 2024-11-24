@@ -7,7 +7,7 @@ from streamlit_folium import st_folium
 
 
 # Configuración inicial de la página
-st.set_page_config(page_title="Tablero de análisis de ventas", layout="wide")
+st.set_page_config(page_title="Tablero de análisis de ventas globales", layout="wide")
 
 # Carga de datos
 def load_data():
@@ -91,7 +91,7 @@ def display_map(df, selected_countries):
     return selected_country
 
 def main():
-    st.title("Tablero de Análisis de Ventas")
+    st.title("Tablero de análisis de ventas")
     st.markdown("Este tablero muestra los datos de ventas por industria, sector y categoría, y permite aplicar filtros interactivos.")
 
     # Cargar datos
