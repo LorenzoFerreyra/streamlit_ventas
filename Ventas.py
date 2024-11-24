@@ -5,6 +5,7 @@ from pathlib import Path
 import folium
 from streamlit_folium import st_folium
 
+
 # Configuración inicial de la página
 st.set_page_config(page_title="Tablero de análisis de ventas", layout="wide")
 
@@ -35,7 +36,7 @@ def load_data():
     return pd.concat(df_list, ignore_index=True)
 
 def display_map(df, selected_countries):
-    import requests
+
     
     # Crear el mapa base
     map = folium.Map(location=[20, 0], zoom_start=2, scrollWheelZoom=False, tiles='CartoDB positron')
