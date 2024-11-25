@@ -1,7 +1,7 @@
 import pandas as pd
 import streamlit as st
 from pathlib import Path
-import plotly.express as px
+
 
 st.set_page_config(page_title="Tablero de análisis por Lt/Kg", layout="centered")
 

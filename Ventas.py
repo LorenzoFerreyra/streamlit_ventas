@@ -10,6 +10,12 @@ from streamlit_folium import st_folium
 st.set_page_config(page_title="Tablero de análisis de ventas globales", layout="wide")
 
 @st.cache_data
+def convert_df(df):
+    return df.to_csv().encode("utf-8")
+
+
+
+@st.cache_data
 def load_data():
     path = Path("data/datos.xlsx")
     all_sheets = pd.read_excel(path, sheet_name=None, skiprows=2)
@@ -119,7 +125,6 @@ def main():
         (df["Industry"].isin(industries) | ("All" in industries)) &
         (df["Year"].astype(str).isin(years) | ("All" in years))
     ]
-
     # Layout principal
     col1, col2 = st.columns([2, 1])
     
@@ -142,6 +147,14 @@ def main():
         filtered_df.style.format({"Value_M_USD": "${:,.2f}", "Growth_Percentage": "{:.2f}%"}),
         hide_index=True
     )
+    csv = convert_df(df)
+
+    st.download_button(
+        label="Descarga tus datos como CSV",
+        data=csv,
+        file_name="large_df.csv",
+        mime="text/csv",
+    )
 
     # Visualizaciones
     col3, col4 = st.columns(2)
@@ -161,6 +174,7 @@ def main():
     summary = filtered_df.groupby(["Country", "Industry"])["Value_M_USD"].sum().reset_index()
     st.dataframe(summary.style.format({"Value_M_USD": "${:,.2f}"}), hide_index=True,
                  use_container_width=True)
+
 
 if __name__ == "__main__":
     main()
