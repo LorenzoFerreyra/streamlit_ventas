@@ -5,7 +5,7 @@ from Ventas import convert_df
 import plotly.express as px
 
 
-st.set_page_config(page_title="Tablero de análisis por Lt/Kg", layout="centered")
+st.set_page_config(page_title="Tablero de análisis de marca", layout="centered")
 
 path = Path("data/datos.xlsx")
 
@@ -46,22 +46,44 @@ st.dataframe(df,  hide_index=True)
 
 with st.sidebar:
     st.header("Filtros")
+    
+    # Opciones de filtros
     year_options = ["All"] + sorted(df["Year"].astype(str).unique())
+    sector_options = ["All"] + sorted(df["Sector"].unique())
+    segment_options = ["All"] + sorted(df["Segment"].unique())
+    category_options = ["All"] + sorted(df["Category"].unique())
+    trademark_owner_options = ["All"] + sorted(df["Trademark Owner"].unique())
+    brand_options = ["All"] + sorted(df["Brand"].unique())
+    
+    # Valores por defecto
     default_country = ["All"]
     default_year = ["All"]
     default_sector = ["All"]
+    default_segment = ["All"]
+    default_category = ["All"]
+    default_trademark_owner = ["All"]
+    default_brand = ["All"]
 
     # Filtros
     countries = st.multiselect("País", options=["All"] + list(df["Country"].unique()), default=default_country)
-    sectors = st.multiselect("Sector", options=["All"] + list(df["Sector"].unique()), default=default_country)
+    sectors = st.multiselect("Sector", options=sector_options, default=default_sector)
+    segments = st.multiselect("Segmento", options=segment_options, default=default_segment)
+    categories = st.multiselect("Categoría", options=category_options, default=default_category)
+    trademark_owners = st.multiselect("Propietario de Marca", options=trademark_owner_options, default=default_trademark_owner)
+    brands = st.multiselect("Marca", options=brand_options, default=default_brand)
     years = st.multiselect("Año", options=year_options, default=default_year)
 
 # Aplicar filtros
 filtered_df = df[
     (df["Country"].isin(countries) | ("All" in countries)) &
     (df["Sector"].isin(sectors) | ("All" in sectors)) &
+    (df["Segment"].isin(segments) | ("All" in segments)) &
+    (df["Category"].isin(categories) | ("All" in categories)) &
+    (df["Trademark Owner"].isin(trademark_owners) | ("All" in trademark_owners)) &
+    (df["Brand"].isin(brands) | ("All" in brands)) &
     (df["Year"].astype(str).isin(years) | ("All" in years))
 ]
+
 
 csv = convert_df(filtered_df)
 
@@ -88,47 +110,66 @@ with col2:
     st.metric("Ventas Totales", f"${ventas_totales:,.2f}")
 
 
-
-# Visualizaciones
-st.subheader("Gráficos")
-
-bar_chart = px.bar(
-    filtered_df.groupby(['Country', 'Brand'])['Value'].sum().reset_index(),
-    x="Value",
-    y="Brand",
-    color="Country",
-    orientation="h",
-    title="Ventas por Marca y País",
-    labels={"Value": "Ventas", "Brand": "Marca", "Country": "País"}
-)
-st.plotly_chart(bar_chart)
-
-area_chart = px.area(
-    filtered_df.groupby(['Year', 'Sector'])['Value'].sum().reset_index(),
-    x="Year",
-    y="Value",
-    color="Sector",
-    title="Distribución de Ventas por Año y Sector",
-    labels={"Value": "Ventas", "Year": "Año", "Sector": "Sector"}
-)
-st.plotly_chart(area_chart)
-
-line_chart = px.line(
-    filtered_df.groupby(['Year', 'Brand'])['Value'].sum().reset_index(),
-    x="Year",
-    y="Value",
-    color="Brand",
-    title="Evolución de Ventas por Marca",
-    labels={"Value": "Ventas", "Year": "Año", "Brand": "Marca"}
-)
-st.plotly_chart(line_chart)
-
-# Gráfico 4: Ventas por Sector (Barras Verticales)
-sector_bar_chart = px.bar(
-    filtered_df.groupby(['Sector'])['Value'].sum().reset_index(),
+# Gráfico de barras por Marca y Sector
+bar_sector_brand = px.bar(
+    filtered_df.groupby(['Sector', 'Brand'])['Value'].sum().reset_index(),
     x="Sector",
     y="Value",
-    title="Ventas por Sector",
-    labels={"Value": "Ventas", "Sector": "Sector"}
+    color="Brand",
+    title="Ventas por Marca y Sector",
+    labels={"Value": "Ventas", "Sector": "Sector", "Brand": "Marca"}
 )
-st.plotly_chart(sector_bar_chart)
+st.plotly_chart(bar_sector_brand)
+
+# Gráfico de barras apiladas por Sector y Segmento
+stacked_bar_sector_segment = px.bar(
+    filtered_df.groupby(['Sector', 'Segment'])['Value'].sum().reset_index(),
+    x="Sector",
+    y="Value",
+    color="Segment",
+    title="Distribución de Ventas por Sector y Segmento",
+    labels={"Value": "Ventas", "Sector": "Sector", "Segment": "Segmento"}
+)
+st.plotly_chart(stacked_bar_sector_segment)
+
+# Gráfico de barras por Categoría y Marca
+bar_category_brand = px.bar(
+    filtered_df.groupby(['Category', 'Brand'])['Value'].sum().reset_index(),
+    x="Category",
+    y="Value",
+    color="Brand",
+    title="Ventas por Categoría y Marca",
+    labels={"Value": "Ventas", "Category": "Categoría", "Brand": "Marca"}
+)
+st.plotly_chart(bar_category_brand)
+# Gráfico de barras por Marca y Propietario de Marca
+bar_owner_brand = px.bar(
+    filtered_df.groupby(['Trademark Owner', 'Brand'])['Value'].sum().reset_index(),
+    x="Trademark Owner",
+    y="Value",
+    color="Brand",
+    title="Ventas por Propietario de Marca y Marca",
+    labels={"Value": "Ventas", "Trademark Owner": "Propietario de Marca", "Brand": "Marca"}
+)
+st.plotly_chart(bar_owner_brand)
+
+# Histograma de Ventas por Segmento
+histogram_segment = px.histogram(
+    filtered_df,
+    x="Value",
+    color="Segment",
+    nbins=30,
+    title="Distribución de Ventas por Segmento",
+    labels={"Value": "Ventas", "Segment": "Segmento"}
+)
+st.plotly_chart(histogram_segment)
+# Gráfico de barras por Categoría y Propietario de Marca
+bar_category_owner = px.bar(
+    filtered_df.groupby(['Category', 'Trademark Owner'])['Value'].sum().reset_index(),
+    x="Category",
+    y="Value",
+    color="Trademark Owner",
+    title="Ventas por Categoría y Propietario de Marca",
+    labels={"Value": "Ventas", "Category": "Categoría", "Trademark Owner": "Propietario de Marca"}
+)
+st.plotly_chart(bar_category_owner)
