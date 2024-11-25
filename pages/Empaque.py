@@ -2,7 +2,7 @@ import pandas as pd
 import streamlit as st
 from pathlib import Path
 import plotly.express as px
-from Ventas import convert_df
+
 
 
 st.set_page_config(page_title="Tablero de análisis por empaque", layout="centered")
@@ -86,6 +86,7 @@ with st.sidebar:
         (df["Pack_Type"].astype(str).isin(pack_type) | ("All" in pack_type))
     ]
 st.dataframe(filtered_df, hide_index=True)
+from Ventas import convert_df
 csv = convert_df(filtered_df)
 
 st.download_button(
