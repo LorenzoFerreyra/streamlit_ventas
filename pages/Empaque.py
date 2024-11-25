@@ -29,19 +29,31 @@ melted_df = df.melt(
     var_name="Country_Pack Material_Pack Type",
     value_name="Value",
 )
-st.dataframe(melted_df)
-
-st.write(melted_df.columns)
-
-melted_df[['Country', 'Pack Material', 'Pack Type']] = melted_df["Country_Pack Material_Pack Type"].str.split('_', n=4, expand=True)
-# Asegurarnos de que los valores en Year, Industry y Sector se propaguen hacia abajo
-melted_df[['Year', 'Industry', 'Sector','Category']] = melted_df[['Year', 'Industry', 'Sector','Category']].fillna(method='ffill')
-
-# Drop the combined column
-df = melted_df.drop(columns=["Country_Pack Material_Pack Type"])
-
+processed_df = melted_df.copy()
+    
+    # Separar la columna combinada
+split_cols = processed_df['Country_Pack Material_Pack Type'].str.extract(
+        r'Country_Pack Material_Pack Type_(.+)_(.+)_(.+)_Volume'
+    )
+    
+    # Asignar nombres a las nuevas columnas
+split_cols.columns = ['Country', 'Pack_Material', 'Pack_Type']
+    
+    # Añadir las nuevas columnas al DataFrame
+processed_df = pd.concat([processed_df, split_cols], axis=1)
+    
+    # Eliminar la columna original combinada
+processed_df = processed_df.drop('Country_Pack Material_Pack Type', axis=1)
+    
+    # Reordenar las columnas
+column_order = [
+        'Year', 'Industry', 'Sector', 'Category',
+        'Country', 'Pack_Material', 'Pack_Type', 'Value'
+    ]
+    
+df = processed_df[column_order]
 st.title("Análisis de métricas por empaque")
-st.dataframe(df,  hide_index=True)
+st.dataframe(df, hide_index=True)
 
 # Filtros interactivos
 with st.sidebar:
@@ -93,9 +105,8 @@ st.plotly_chart(fig_country)
 
 # Gráfico 3: Evolución en el tiempo
 st.subheader("Evolución en el Tiempo")
-time_df = melted_df[
-    (melted_df["Metric"] == metric) &
-    (melted_df["Country"].isin(country) if country else True)
+time_df = df[
+    (df["Country"].isin(countries) if countries else True)
 ]
 fig_time = px.line(
     time_df,
