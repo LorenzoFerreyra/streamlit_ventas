@@ -9,7 +9,7 @@ from streamlit_folium import st_folium
 # Configuración inicial de la página
 st.set_page_config(page_title="Tablero de análisis de ventas globales", layout="wide")
 
-# Carga de datos
+@st.cache_data
 def load_data():
     path = Path("data/datos.xlsx")
     all_sheets = pd.read_excel(path, sheet_name=None, skiprows=2)
@@ -159,7 +159,8 @@ def main():
     # Resumen de ventas
     st.subheader("Resumen de ventas por País e Industria")
     summary = filtered_df.groupby(["Country", "Industry"])["Value_M_USD"].sum().reset_index()
-    st.dataframe(summary.style.format({"Value_M_USD": "${:,.2f}"}), hide_index=True)
+    st.dataframe(summary.style.format({"Value_M_USD": "${:,.2f}"}), hide_index=True,
+                 use_container_width=True)
 
 if __name__ == "__main__":
     main()
