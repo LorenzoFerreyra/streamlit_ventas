@@ -62,18 +62,36 @@ filtered_df = df[
     (df["Sector"].isin(sectors) | ("All" in sectors)) &
     (df["Year"].astype(str).isin(years) | ("All" in years))
 ]
-# Tarjetas de KPI
-st.subheader("KPIs Principales")
-col1, col2, col3, col4 = st.columns(4)
-col1.metric("Ventas Totales", f"${filtered_df['Value'].sum():,.2f}")
-col2.metric("Países", filtered_df["Country"].nunique())
-col3.metric("Sectores", filtered_df["Sector"].nunique())
-col4.metric("Marcas", filtered_df["Brand"].nunique())
+
+csv = convert_df(filtered_df)
+
+st.download_button(
+    label="Descarga tus datos como CSV",
+    data=csv,
+    file_name="large_df.csv",
+    mime="text/csv",
+)
+
+
+total_unidades = filtered_df["Value"].count()
+ventas_totales = filtered_df["Value"].sum()
+
+
+col1, col2 = st.columns([1, 2])
+
+# Columna 1: Total de unidades vendidas
+with col1:
+    st.metric("Unidades Vendidas", f"{total_unidades:,}")
+
+# Columna 2: Ventas Totales
+with col2:
+    st.metric("Ventas Totales", f"${ventas_totales:,.2f}")
+
+
 
 # Visualizaciones
 st.subheader("Gráficos")
 
-# Gráfico 1: Ventas por Marca y País (Barras horizontales)
 bar_chart = px.bar(
     filtered_df.groupby(['Country', 'Brand'])['Value'].sum().reset_index(),
     x="Value",
@@ -85,34 +103,32 @@ bar_chart = px.bar(
 )
 st.plotly_chart(bar_chart)
 
-# Gráfico 2: Distribución por Sector (Barras apiladas)
-stacked_bar = px.bar(
+area_chart = px.area(
     filtered_df.groupby(['Year', 'Sector'])['Value'].sum().reset_index(),
     x="Year",
     y="Value",
     color="Sector",
-    title="Distribución de Ventas por Sector y Año",
+    title="Distribución de Ventas por Año y Sector",
     labels={"Value": "Ventas", "Year": "Año", "Sector": "Sector"}
 )
-st.plotly_chart(stacked_bar)
+st.plotly_chart(area_chart)
 
-# Gráfico 3: Relación entre Sector y Métrica (Dispersión)
-scatter_plot = px.scatter(
-    filtered_df,
+line_chart = px.line(
+    filtered_df.groupby(['Year', 'Brand'])['Value'].sum().reset_index(),
+    x="Year",
+    y="Value",
+    color="Brand",
+    title="Evolución de Ventas por Marca",
+    labels={"Value": "Ventas", "Year": "Año", "Brand": "Marca"}
+)
+st.plotly_chart(line_chart)
+
+# Gráfico 4: Ventas por Sector (Barras Verticales)
+sector_bar_chart = px.bar(
+    filtered_df.groupby(['Sector'])['Value'].sum().reset_index(),
     x="Sector",
     y="Value",
-    color="Metric",
-    size="Value",
-    title="Relación entre Sector y Métrica",
-    labels={"Value": "Ventas", "Sector": "Sector", "Metric": "Métrica"},
-    hover_data=["Country", "Brand"]
+    title="Ventas por Sector",
+    labels={"Value": "Ventas", "Sector": "Sector"}
 )
-st.plotly_chart(scatter_plot)
-csv = convert_df(filtered_df)
-
-st.download_button(
-    label="Descarga tus datos como CSV",
-    data=csv,
-    file_name="large_df.csv",
-    mime="text/csv",
-)
+st.plotly_chart(sector_bar_chart)
