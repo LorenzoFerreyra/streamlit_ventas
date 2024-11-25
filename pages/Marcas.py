@@ -110,16 +110,7 @@ with col2:
     st.metric("Ventas Totales", f"${ventas_totales:,.2f}")
 
 
-# Gráfico de barras por Marca y Sector
-bar_sector_brand = px.bar(
-    filtered_df.groupby(['Sector', 'Brand'])['Value'].sum().reset_index(),
-    x="Sector",
-    y="Value",
-    color="Brand",
-    title="Ventas por Marca y Sector",
-    labels={"Value": "Ventas", "Sector": "Sector", "Brand": "Marca"}
-)
-st.plotly_chart(bar_sector_brand)
+
 
 # Gráfico de barras apiladas por Sector y Segmento
 stacked_bar_sector_segment = px.bar(
@@ -132,17 +123,7 @@ stacked_bar_sector_segment = px.bar(
 )
 st.plotly_chart(stacked_bar_sector_segment)
 
-# Gráfico de barras por Categoría y Marca
-bar_category_brand = px.bar(
-    filtered_df.groupby(['Category', 'Brand'])['Value'].sum().reset_index(),
-    x="Category",
-    y="Value",
-    color="Brand",
-    title="Ventas por Categoría y Marca",
-    labels={"Value": "Ventas", "Category": "Categoría", "Brand": "Marca"}
-)
-st.plotly_chart(bar_category_brand)
-# Gráfico de barras por Marca y Propietario de Marca
+
 bar_owner_brand = px.bar(
     filtered_df.groupby(['Trademark Owner', 'Brand'])['Value'].sum().reset_index(),
     x="Trademark Owner",
