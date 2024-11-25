@@ -147,10 +147,10 @@ def main():
         filtered_df.style.format({"Value_M_USD": "${:,.2f}", "Growth_Percentage": "{:.2f}%"}),
         hide_index=True
     )
-    csv = convert_df(df)
+    csv = convert_df(filtered_df)
 
     st.download_button(
-        label="Descarga tus datos como CSV",
+        label="Descarga tus datos filtrados como CSV",
         data=csv,
         file_name="large_df.csv",
         mime="text/csv",

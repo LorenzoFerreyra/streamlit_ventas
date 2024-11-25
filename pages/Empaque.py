@@ -3,6 +3,9 @@ import streamlit as st
 from pathlib import Path
 import plotly.express as px
 
+@st.cache_data
+def convert_df(df):
+    return df.to_csv().encode("utf-8")
 st.set_page_config(page_title="Tablero de análisis por empaque", layout="centered")
 
 path = Path("data/datos.xlsx")
@@ -53,7 +56,8 @@ column_order = [
     
 df = processed_df[column_order]
 st.title("Análisis de métricas por empaque")
-st.dataframe(df, hide_index=True)
+df["Value"] = df["Value"].replace("-", 0).astype(float)
+
 
 # Filtros interactivos
 with st.sidebar:
@@ -66,55 +70,74 @@ with st.sidebar:
 
         # Filtros
         countries = st.multiselect("País", options=["All"] + list(df["Country"].unique()), default=default_country)
-        sectors = st.multiselect("Sector", options=["All"] + list(df["Sector"].unique()), default=default_country)
+        sectors = st.multiselect("Sector", options=["All"] + list(df["Sector"].unique()), default=default_sector)
         industries = st.multiselect("Industria", options=["All"] + list(df["Industry"].unique()), default=default_industry)
         years = st.multiselect("Año", options=year_options, default=default_year)
-
+        categories = st.multiselect("Sector", options=["All"] + list(df["Category"].unique()), default=default_country)
     # Aplicar filtros
         filtered_df = df[
         (df["Country"].isin(countries) | ("All" in countries)) &
         (df["Sector"].isin(sectors) | ("All" in sectors)) &
         (df["Industry"].isin(industries) | ("All" in industries)) &
-        (df["Year"].astype(str).isin(years) | ("All" in years))
+        (df["Year"].astype(str).isin(years) | ("All" in years)) &
+        (df["Category"].astype(str).isin(categories) | ("All" in categories))
     ]
+st.dataframe(filtered_df, hide_index=True)
+csv = convert_df(filtered_df)
 
-# Gráfico 1: Distribución por Sector
+st.download_button(
+    label="Descarga tus datos filtrados como CSV",
+    data=csv,
+    file_name="large_df.csv",
+    mime="text/csv",
+)
+df_sector = filtered_df.groupby(['Sector', 'Industry'])['Value'].sum().reset_index()
+
 st.subheader("Distribución por Sector")
 fig_sector = px.bar(
-    filtered_df,
+    df_sector,
     x="Sector",
     y="Value",
     color="Industry",
     title="Distribución por Sector e Industria",
-    labels={"Value": "Valor", "Sector": "Sector"},
+    labels={"Value": "Value", "Sector": "Sector"}
 )
-st.plotly_chart(fig_sector)
+st.plotly_chart(fig_sector, use_container_width=True)
 
-# Gráfico 2: Comparativa por País
-st.subheader("Comparativa por País")
-fig_country = px.line(
-    filtered_df,
+df_country = filtered_df.groupby(['Country', 'Pack_Material'])['Value'].sum().reset_index()
+
+st.subheader("Comparativa por País y Material de Empaque")
+fig_country = px.bar(
+    df_country,
     x="Country",
     y="Value",
-    color="Industry",
-    markers=True,
-    title="Tendencia de Métricas por País",
-    labels={"Value": "Valor", "Country": "País"},
+    color="Pack_Material",
+    title="Comparativa por País y Material de Empaque",
+    labels={"Value": "Value", "Country": "Country"},
+    barmode="stack"  # Cambia a "group" si prefieres barras agrupadas
 )
-st.plotly_chart(fig_country)
+st.plotly_chart(fig_country, use_container_width=True)
+df_time = filtered_df.groupby(['Year', 'Country'])['Value'].sum().reset_index()
 
-# Gráfico 3: Evolución en el tiempo
-st.subheader("Evolución en el Tiempo")
-time_df = df[
-    (df["Country"].isin(countries) if countries else True)
-]
+st.subheader("Evolución Temporal por País")
 fig_time = px.line(
-    time_df,
+    df_time,
     x="Year",
     y="Value",
     color="Country",
     title="Evolución Temporal por País",
-    labels={"Value": "Valor", "Year": "Año"},
+    markers=True,
+    labels={"Value": "Value", "Year": "Year"}
 )
-st.plotly_chart(fig_time)
+st.plotly_chart(fig_time, use_container_width=True)
+df_material = filtered_df.groupby('Pack_Material')['Value'].sum().reset_index()
 
+st.subheader("Distribución por Material de Empaque")
+fig_material = px.pie(
+    df_material,
+    names="Pack_Material",
+    values="Value",
+    title="Distribución por Material de Empaque",
+    hole=0.3  # Para hacer un gráfico de dona
+)
+st.plotly_chart(fig_material, use_container_width=True)
