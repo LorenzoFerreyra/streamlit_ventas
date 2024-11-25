@@ -2,10 +2,8 @@ import pandas as pd
 import streamlit as st
 from pathlib import Path
 import plotly.express as px
+from Ventas import convert_df
 
-@st.cache_data
-def convert_df(df):
-    return df.to_csv().encode("utf-8")
 st.set_page_config(page_title="Tablero de análisis por Lt/Kg", layout="centered")
 
 path = Path("data/datos.xlsx")
@@ -73,44 +71,57 @@ st.download_button(
     file_name="large_df.csv",
     mime="text/csv",
 )
-# Gráfico 1: Distribución por Sector
-st.subheader("Distribución por Sector")
-fig_sector = px.bar(
-    filtered_df,
-    x="Sector",
-    y="Value",
-    color="Industry",
-    title="Distribución por Sector e Industria",
-    labels={"Value": "Valor", "Sector": "Sector"},
-)
-st.plotly_chart(fig_sector)
 
-# Gráfico 2: Comparativa por País
-st.subheader("Comparativa por País")
-fig_country = px.line(
+# Visualizaciones interactivas con Plotly
+st.header("Visualizaciones Interactivas")
+
+# 1. Gráfico de barras: Comparación por país
+st.subheader("Distribución por País")
+bar_chart = px.bar(
     filtered_df,
     x="Country",
     y="Value",
-    color="Industry",
-    markers=True,
-    title="Tendencia de Métricas por País",
-    labels={"Value": "Valor", "Country": "País"},
+    color="Metric",
+    barmode="group",
+    title="Distribución de Métricas por País",
+    labels={"Value": "Valor", "Country": "País", "Metric": "Métrica"}
 )
-st.plotly_chart(fig_country)
+st.plotly_chart(bar_chart)
 
-# Gráfico 3: Evolución en el tiempo
-st.subheader("Evolución en el Tiempo")
-time_df = melted_df[
-    (melted_df["Metric"] == metric) &
-    (melted_df["Country"].isin(country) if country else True)
-]
-fig_time = px.line(
-    time_df,
+# 2. Gráfico de barras apiladas: Distribución por año y sector
+st.subheader("Distribución por Año y Sector")
+stacked_bar_chart = px.bar(
+    filtered_df,
     x="Year",
     y="Value",
-    color="Country",
-    title="Evolución Temporal por País",
-    labels={"Value": "Valor", "Year": "Año"},
+    color="Sector",
+    barmode="stack",
+    title="Distribución de Valores por Año y Sector",
+    labels={"Value": "Valor", "Year": "Año", "Sector": "Sector"}
 )
-st.plotly_chart(fig_time)
+st.plotly_chart(stacked_bar_chart)
 
+# 3. Gráfico de área: Tendencias por sector
+st.subheader("Tendencias por Sector")
+area_chart = px.area(
+    filtered_df,
+    x="Year",
+    y="Value",
+    color="Sector",
+    title="Tendencias por Sector",
+    labels={"Value": "Valor", "Year": "Año", "Sector": "Sector"}
+)
+st.plotly_chart(area_chart)
+
+# 4. Gráfico de barras horizontal: Total por Métrica y País
+st.subheader("Total por Métrica y País")
+horizontal_bar_chart = px.bar(
+    filtered_df,
+    x="Value",
+    y="Country",
+    color="Metric",
+    orientation="h",
+    title="Total por Métrica y País",
+    labels={"Value": "Valor", "Country": "País", "Metric": "Métrica"}
+)
+st.plotly_chart(horizontal_bar_chart)

@@ -2,10 +2,9 @@ import pandas as pd
 import streamlit as st
 from pathlib import Path
 import plotly.express as px
+from Ventas import convert_df
 
-@st.cache_data
-def convert_df(df):
-    return df.to_csv().encode("utf-8")
+
 st.set_page_config(page_title="Tablero de análisis por empaque", layout="centered")
 
 path = Path("data/datos.xlsx")
