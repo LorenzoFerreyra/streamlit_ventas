@@ -1,8 +1,11 @@
 import pandas as pd
 import streamlit as st
 from pathlib import Path
+import plotly.express as px
 
-
+@st.cache_data
+def convert_df(df):
+    return df.to_csv().encode("utf-8")
 st.set_page_config(page_title="Tablero de análisis por Lt/Kg", layout="centered")
 
 path = Path("data/datos.xlsx")
@@ -39,7 +42,6 @@ melted_df[['Year', 'Industry', 'Sector']] = melted_df[['Year', 'Industry', 'Sect
 df = melted_df.drop(columns=["Country_Metric"])
 
 st.title("Análisis de métricas Lt/Kg")
-st.dataframe(df,  hide_index=True)
 
 # Filtros interactivos
 with st.sidebar:
@@ -63,7 +65,14 @@ with st.sidebar:
         (df["Industry"].isin(industries) | ("All" in industries)) &
         (df["Year"].astype(str).isin(years) | ("All" in years))
     ]
-
+st.dataframe(filtered_df,  hide_index=True)
+csv = convert_df(filtered_df)
+st.download_button(
+    label="Descarga tus datos filtrados como CSV",
+    data=csv,
+    file_name="large_df.csv",
+    mime="text/csv",
+)
 # Gráfico 1: Distribución por Sector
 st.subheader("Distribución por Sector")
 fig_sector = px.bar(

@@ -74,13 +74,17 @@ with st.sidebar:
         industries = st.multiselect("Industria", options=["All"] + list(df["Industry"].unique()), default=default_industry)
         years = st.multiselect("Año", options=year_options, default=default_year)
         categories = st.multiselect("Sector", options=["All"] + list(df["Category"].unique()), default=default_country)
+        pack_material = st.multiselect("Pack Material", options=["All"] + list(df["Pack_Material"].unique()), default=default_industry)
+        pack_type =  st.multiselect("Pack Type", options=["All"] + list(df["Pack_Type"].unique()), default=default_industry)
     # Aplicar filtros
         filtered_df = df[
         (df["Country"].isin(countries) | ("All" in countries)) &
         (df["Sector"].isin(sectors) | ("All" in sectors)) &
         (df["Industry"].isin(industries) | ("All" in industries)) &
         (df["Year"].astype(str).isin(years) | ("All" in years)) &
-        (df["Category"].astype(str).isin(categories) | ("All" in categories))
+        (df["Category"].astype(str).isin(categories) | ("All" in categories)) &
+        (df["Pack_Material"].astype(str).isin(pack_material) | ("All" in pack_material)) &
+        (df["Pack_Type"].astype(str).isin(pack_type) | ("All" in pack_type))
     ]
 st.dataframe(filtered_df, hide_index=True)
 csv = convert_df(filtered_df)
