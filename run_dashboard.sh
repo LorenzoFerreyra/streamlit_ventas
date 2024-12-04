@@ -14,7 +14,7 @@ fi
 
 # Step 3: Activate the virtual environment
 echo "Activating the virtual environment..."
-source entorno_virtual/bin/activate
+source entorno_virtual/Scripts/activate
 
 # Step 4: Install required libraries
 echo "Installing required libraries..."
