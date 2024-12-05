@@ -4,18 +4,21 @@ import streamlit as st
 from pathlib import Path
 import folium
 from streamlit_folium import st_folium
+import login as login
+
+
 
 
 # Configuración inicial de la página
 st.set_page_config(page_title="Tablero de análisis de ventas globales", layout="wide")
 
-@st.cache_data
+
 def convert_df(df):
     return df.to_csv().encode("utf-8")
 
 
 
-@st.cache_data
+
 def load_data():
     path = Path("data/datos.xlsx")
     all_sheets = pd.read_excel(path, sheet_name=None, skiprows=2)
@@ -175,6 +178,13 @@ def main():
     st.dataframe(summary.style.format({"Value_M_USD": "${:,.2f}"}), hide_index=True,
                  use_container_width=True)
 
-
-if __name__ == "__main__":
-    main()
+login.generarLogin()
+if 'usuario' in st.session_state:
+    st.subheader('Bienvenidos')
+    if __name__ == "__main__":
+        main()
+        btnSalir=st.button("Cerrar sesión",key='ventas')
+        if btnSalir:
+            st.session_state.clear()
+            # Luego de borrar el Session State reiniciamos la app para mostrar la opción de usuario y clave
+            st.rerun()

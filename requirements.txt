@@ -5,3 +5,4 @@ streamlit-folium
 numpy
 openpyxl
 plotly
+streamlit-extras
